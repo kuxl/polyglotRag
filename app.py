@@ -362,14 +362,23 @@ st.markdown(
         margin: 1.2rem auto 0;
         text-align: center;
     }
+    div[class*="st-key-upload-card"],
+    div[class*="st-key-upload-card"] > div,
+    div[data-testid="stFileUploader"],
+    div[data-testid="stFileUploader"] > section,
+    div[data-testid="stFileUploader"] > div {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
     div[class*="st-key-upload-card"] {
         width: min(100%, 720px);
         margin: 0 auto;
         padding: 1.35rem 1.5rem 1.25rem;
-        border: 2px dashed #bb4eff;
+        border: 2px dashed rgba(255, 255, 255, .9);
         border-radius: 1.35rem;
         background: linear-gradient(145deg, rgba(20, 13, 49, .88), rgba(13, 10, 35, .9));
-        box-shadow: 0 0 38px rgba(94, 29, 185, .12), inset 0 0 36px rgba(88, 42, 170, .08);
+        box-shadow: 0 0 38px rgba(255, 255, 255, .08), inset 0 0 36px rgba(255, 255, 255, .05);
         text-align: center;
     }
     .upload-mark {
@@ -405,9 +414,10 @@ st.markdown(
         justify-content: center;
         min-height: 4.1rem;
         padding: .35rem .7rem;
-        border: 1px solid #6842bc;
+        border: 1px solid rgba(255, 255, 255, .8);
         border-radius: .95rem;
-        background: rgba(27, 20, 64, .72);
+        background: rgba(17, 14, 38, .82) !important;
+        box-shadow: none !important;
         text-align: center;
     }
     div[class*="st-key-upload-card"] [data-testid="stFileUploader"] small,
@@ -416,12 +426,13 @@ st.markdown(
         text-align: center;
     }
     div[class*="st-key-upload-card"] [data-testid="stFileUploader"] button {
-        border: 1px solid #9858ff;
+        border: 1px solid rgba(255, 255, 255, .9);
         border-radius: 999px;
-        background: linear-gradient(105deg, #9051ff, #4c1ce8);
+        background: linear-gradient(105deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
         color: white;
         font-weight: 700;
         margin: 0 auto;
+        box-shadow: none !important;
     }
     .supported-formats {
         margin: .45rem auto .7rem;
@@ -456,6 +467,22 @@ st.markdown(
     }
     .welcome-title { margin-top: 1rem; color: #f0ebff; text-align: center; }
     .welcome-copy { color: #c5bfdc; text-align: center; }
+    div[class*="st-key-top-actions"] {
+        position: fixed !important;
+        top: .5rem;
+        right: 4rem;
+        z-index: 1000;
+        width: min(390px, calc(100vw - 5rem));
+        background: rgba(0, 0, 0, .92);
+        backdrop-filter: blur(10px);
+        padding: .35rem 0 .45rem;
+    }
+    @media (max-width: 700px) {
+        div[class*="st-key-top-actions"] {
+            right: 3.25rem;
+            width: calc(100vw - 4.25rem);
+        }
+    }
     [data-testid="stChatMessage"] {
         border-color: #4a347d;
         background: rgba(21, 15, 51, .92);
@@ -463,27 +490,28 @@ st.markdown(
     [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {
         background: rgba(40, 25, 88, .92);
     }
-    div[data-testid="stHorizontalBlock"] {
-        position: sticky;
-        top: 0;
-        z-index: 30;
-        background: rgba(0, 0, 0, 0.86);
-        backdrop-filter: blur(10px);
-        padding-top: .35rem;
-        padding-bottom: .2rem;
-    }
     [data-testid="stBottomBlockContainer"] {
         position: sticky;
         bottom: 0;
         z-index: 25;
         padding-bottom: .65rem;
-        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.72) 18%, rgba(0, 0, 0, 0.92) 100%);
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+    }
+    [data-testid="stBottom"] {
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+    [data-testid="stBottom"] > div {
+        background: transparent !important;
+        box-shadow: none !important;
     }
     [data-testid="stChatInput"] {
         border: 1px solid rgba(131, 98, 217, 0.8);
         border-radius: 1.15rem;
         background: rgba(21, 17, 41, 0.96);
-        box-shadow: 0 12px 30px rgba(0, 0, 0, .28), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
     }
     [data-testid="stChatInput"] textarea,
     [data-testid="stTextInput"] input {
@@ -506,6 +534,7 @@ st.markdown(
         z-index: 2;
         max-width: 1120px;
         padding-bottom: .45rem;
+        background: transparent !important;
     }
     .wave-footer {
         display: none;
@@ -591,68 +620,67 @@ current_thread = st.session_state.threads[st.session_state.current_thread_id]
 rag_engine = current_thread["rag_engine"]
 workflow = st.session_state.workflow
 
-brand_col, new_chat_col, history_col = st.columns([5.4, 1.35, 1.8], vertical_alignment="center")
-with brand_col:
-    st.markdown("")
-with new_chat_col:
-    st.button(
-        "＋  New Chat",
-        use_container_width=True,
-        on_click=create_new_chat,
-        type="primary",
-    )
-with history_col:
-    with st.popover("◷  Generate History", use_container_width=True):
-        st.markdown("#### Recent chats")
-        sorted_threads = sorted(
-            st.session_state.threads.items(),
-            key=lambda item: (
-                item[1].get("pinned", False),
-                item[1]["title"].casefold(),
-            ),
-            reverse=True,
+with st.container(key="top-actions"):
+    new_chat_col, history_col = st.columns([1.35, 1.8], vertical_alignment="center")
+    with new_chat_col:
+        st.button(
+            "＋  New Chat",
+            use_container_width=True,
+            on_click=create_new_chat,
+            type="primary",
         )
-        for thread_id, thread_data in sorted_threads:
-            is_active = thread_id == st.session_state.current_thread_id
-            prefix = "📌 " if thread_data.get("pinned") else ""
-            title_text = f"{'● ' if is_active else ''}{prefix}{thread_data['title']}"
-            title_col, options_col = st.columns([5, 1], vertical_alignment="center")
-            with title_col:
-                st.button(
-                    title_text,
-                    key=f"conversation_{thread_id}",
-                    use_container_width=True,
-                    on_click=switch_chat,
-                    args=(thread_id,),
-                    type="primary" if is_active else "secondary",
-                )
-            with options_col:
-                with st.popover("⋯", use_container_width=True):
-                    st.markdown("**Chat options**")
-                    with st.form(f"rename_form_{thread_id}"):
-                        new_title = st.text_input(
-                            "Title",
-                            value=thread_data["title"],
-                            key=f"rename_{thread_id}",
+    with history_col:
+        with st.popover("◷  Generate History", use_container_width=True):
+            st.markdown("#### Recent chats")
+            sorted_threads = sorted(
+                st.session_state.threads.items(),
+                key=lambda item: (
+                    item[1].get("pinned", False),
+                    item[1]["title"].casefold(),
+                ),
+                reverse=True,
+            )
+            for thread_id, thread_data in sorted_threads:
+                is_active = thread_id == st.session_state.current_thread_id
+                prefix = "📌 " if thread_data.get("pinned") else ""
+                title_text = f"{'● ' if is_active else ''}{prefix}{thread_data['title']}"
+                title_col, options_col = st.columns([5, 1], vertical_alignment="center")
+                with title_col:
+                    st.button(
+                        title_text,
+                        key=f"conversation_{thread_id}",
+                        use_container_width=True,
+                        on_click=switch_chat,
+                        args=(thread_id,),
+                        type="primary" if is_active else "secondary",
+                    )
+                with options_col:
+                    with st.popover("⋯", use_container_width=True):
+                        st.markdown("**Chat options**")
+                        with st.form(f"rename_form_{thread_id}"):
+                            new_title = st.text_input(
+                                "Title",
+                                value=thread_data["title"],
+                                key=f"rename_{thread_id}",
+                            )
+                            if st.form_submit_button("Save title", use_container_width=True):
+                                rename_chat(thread_id, new_title)
+                                st.rerun()
+                        st.button(
+                            "Unpin" if thread_data.get("pinned") else "Pin",
+                            key=f"pin_{thread_id}",
+                            on_click=toggle_pin,
+                            args=(thread_id,),
+                            use_container_width=True,
                         )
-                        if st.form_submit_button("Save title", use_container_width=True):
-                            rename_chat(thread_id, new_title)
-                            st.rerun()
-                    st.button(
-                        "Unpin" if thread_data.get("pinned") else "Pin",
-                        key=f"pin_{thread_id}",
-                        on_click=toggle_pin,
-                        args=(thread_id,),
-                        use_container_width=True,
-                    )
-                    st.button(
-                        "Delete chat",
-                        key=f"delete_{thread_id}",
-                        on_click=delete_chat,
-                        args=(thread_id,),
-                        use_container_width=True,
-                        type="secondary",
-                    )
+                        st.button(
+                            "Delete chat",
+                            key=f"delete_{thread_id}",
+                            on_click=delete_chat,
+                            args=(thread_id,),
+                            use_container_width=True,
+                            type="secondary",
+                        )
 
 st.write("")
 
@@ -783,18 +811,6 @@ elif current_thread["has_doc"]:
             <div class="welcome-title">✅ Your document is ready</div>
             <p class="welcome-copy">
                 Ask a question about its contents using the message box below.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-else:
-    st.markdown(
-        """
-        <div class="welcome-header">
-            <div class="welcome-title">👋 Add a document to begin</div>
-            <p class="welcome-copy">
-                Upload a PDF, CSV, TXT, DOCX, or XLSX above. Once it is ready, you can ask questions here.
             </p>
         </div>
         """,
